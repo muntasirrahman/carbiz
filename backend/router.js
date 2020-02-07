@@ -19,7 +19,9 @@ appointmentRouter.route('/').get((req, res) => {
         });
 });
 
+// Add New Appointment
 appointmentRouter.route('/add').post((req, res) => {
+
     let name = req.body.name;
     let email = req.body.email;
     let scheduledDate = Date.parse(req.body.scheduledDate);
@@ -37,21 +39,18 @@ appointmentRouter.route('/add').post((req, res) => {
         scheduledDate
     });
 
-    //check existing entry within 3 weeks from now
-
-    //if none, add new entry
     newAppointment.save()
         .then(() => {
-            console.log('Create new entry at database.');
+            //console.log('Create new entry at database.');
             res.json('New appointment is scheduled.');
         })
         .catch(dbErr => {
-
-            console.error('Failed to create new entry at database.');
-            res.status(400).json(`Failed to add schedule, server error: ${dbErr.toString()}`);
+            //console.error('Failed to create new entry at database.');
+            res.status(403).json(`Failed to add schedule, server error: ${dbErr.toString()}`);
         });
 });
 
+// Check Inspection Slot Availability
 appointmentRouter.route('/available').post((req, res) => {
 
     let schedule = moment(req.body.scheduledDate);
@@ -94,6 +93,7 @@ appointmentRouter.route('/available').post((req, res) => {
         });
 });
 
+// View Appointment Detail
 appointmentRouter.route('/:id').get((req, res) => {
 
     Appointment.findById(req.params.id)
@@ -109,13 +109,12 @@ appointmentRouter.route('/:id').get((req, res) => {
         });
 });
 
+// Detele Appointment
 appointmentRouter.route('/:id').delete((req, res) => {
 
     Appointment.findByIdAndDelete(req.params.id)
         .then(appointment => {
             if (appointment.length === 0) {
-
-                console.error(`No data for appointment ${req.params.id}`);
                 res.status(404).json(`No data for appointment ${req.params.id}`);
 
             } else {
@@ -127,22 +126,19 @@ appointmentRouter.route('/:id').delete((req, res) => {
         });
 });
 
+// Update Appointment detail
 appointmentRouter.route('/update/:id').post((req, res) => {
-    console.log(`router 131: ${req.params.id}`);
 
     Appointment.findByIdAndUpdate(req.params.id)
         .then(appointment => {
             if (appointment.length === 0) {
-                console.error(`No data for appointment ${req.params.id}`);
                 res.status(404).json(`No data for appointment ${req.params.id}`);
 
             } else {
-
                 appointment.name = req.body.name;
                 appointment.email = req.body.email;
                 appointment.scheduledDate = Date.parse(req.body.scheduledDate);
 
-                //check scheduledDate
                 appointment.save()
                     .then(() => {
                         res.json(`Appointment ${req.params.id} is updated.`);
@@ -165,26 +161,21 @@ function isTimingOk(schedule) {
     let dayDiff = schedule.diff(now, 'days');
     let minuteDiff = schedule.diff(now, 'minutes');
 
-    //console.log(`Day diff ${dayDiff}, and minute diff ${minuteDiff}`);
-    if (dayDiff > 21) {
-        console.log(`Appointment more than 3 weeks will not be scheduled ${schedule}`);
-        //res.status(403).json(`Appointment more than 3 weeks will not be scheduled`);
+    if (dayDiff > 21) { // More than 3 weeks
         return {
             status: false,
             message: `Appointment more than 3 weeks will not be scheduled ${schedule}`
         }
     }
 
-    if (minuteDiff < 61 && schedule.hour() === now.hour()) {
-        console.log(`Appointment in the same hour is not allowed ${schedule}`);
-        //res.status(403).json(`Appointment in the same hour is not allowed`);
+    if (minuteDiff < 61 && schedule.hour() === now.hour()) { // Within the same hour
         return {
             status: false,
             message: `Appointment in the same hour is not allowed ${schedule}`
         }
     }
 
-    if (minuteDiff < 0) {
+    if (minuteDiff < 0) { // Schedule happens in the past
         return {
             status: false,
             message: `Appointment is in the past ${schedule}`
