@@ -1,4 +1,6 @@
-[![Watch the demo](https://img.youtube.com/vi/xmO-qMJuyB0/maxresdefault.jpg)](https://youtu.be/xmO-qMJuyB0)
+# Trivial Web Application
+
+[![Watch the demo here](https://img.youtube.com/vi/xmO-qMJuyB0/0.jpg)](https://youtu.be/xmO-qMJuyB0)
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
