@@ -1,68 +1,175 @@
+[![Watch the demo](https://img.youtube.com/vi/xmO-qMJuyB0/maxresdefault.jpg)](https://youtu.be/xmO-qMJuyB0)
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
 
-In the project directory, you can run:
+## Components
 
-### `npm start`
+This project comprises of 2 group of code:
+* Frontend code using React
+* Backend code using Node.js
 
-Runs the app in the development mode.<br />
+The data storage is Mongodb.
+
+### Backend
+
+To launch the backend app, type:
+
+```$bash
+cd backend
+nodemon server
+```
+
+The backend server listens at port 5000 for incoming RESTful API request.
+
+To simplify the data mapping to/from Mongodb, the backend uses Mongoose framework.
+
+The backend provides following API:
+
+
+| *Action* | *HTTP Method* | *URL* |
+|---|---|---|
+| List of Booking | GET | / |
+| Booking details | GET | /:id |
+| Delete booking | DELETE | /:id |
+| Update booking | POST | /update |
+| Add new booking | POST | /add |
+| Inspection slot availability | POST | /available |
+
+### Frontend
+
+To launch the frontend application.
+```$bash
+npm start
+```
+
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+### Features
 
-### `npm test`
+* User Can't Book inspection in the same hour
+* User can only book for the next 3 weeks
+* Frontend handle response from Backend API
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+#### User Can't Book inspection in the same hour
+Frontend
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+* [MakeAppointment.js](./src/components/MakeAppointment.js)
+* [ChangeAppointment.js](./src/components/ChangeAppointment.js)
+```$xslt
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+<DatePicker selected={this.state.scheduledDate}
+            minTime={setHours(setMinutes(new Date(), 0), 9)}
+            maxTime={setHours(setMinutes(new Date(), 30), 17)}
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+            minDate={new Date()}
+            maxDate={addWeeks(new Date(), 3)}
+```
 
-### `npm run eject`
+*Backend*
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+[router.js](./backend/router.js)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```$xslt
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+    if (minuteDiff < 61 && schedule.hour() === now.hour()) {
+        console.log(`Appointment in the same hour is not allowed ${schedule}`);
+        //res.status(403).json(`Appointment in the same hour is not allowed`);
+        return {
+            status: false,
+            message: `Appointment in the same hour is not allowed ${schedule}`
+        }
+    }
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## Learn More
+#### User can only book for the next 3 weeks
+This feature is implemented in frontend and backend.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+*Frontend*
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```$xslt
 
-### Code Splitting
+<DatePicker selected={this.state.scheduledDate}
+    //between 9am to 6pm    
+    minTime={setHours(setMinutes(new Date(), 0), 9)}
+    maxTime={setHours(setMinutes(new Date(), 30), 17)}
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+    //for the next 3 weeks only
+    minDate={new Date()}
+    maxDate={addWeeks(new Date(), 3)}
+```
 
-### Analyzing the Bundle Size
+User also can only book from 9am to 6pm
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
 
-### Making a Progressive Web App
+*Backend*
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+```$xslt
+function isTimingOk(schedule) {
 
-### Advanced Configuration
+    let now = moment();
+    let dayDiff = schedule.diff(now, 'days');
+    let minuteDiff = schedule.diff(now, 'minutes');
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+    //console.log(`Day diff ${dayDiff}, and minute diff ${minuteDiff}`);
+    if (dayDiff > 21) {
+        console.log(`Appointment more than 3 weeks will not be scheduled ${schedule}`);
+        //res.status(403).json(`Appointment more than 3 weeks will not be scheduled`);
+        return {
+            status: false,
+            message: `Appointment more than 3 weeks will not be scheduled ${schedule}`
+        }
+    }
+```
+#### Frontend handle response from Backend API
 
-### Deployment
+### Bonus: Slot Availability is updated in realtime
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+The frontend send RESTful request
+```$xslt
+axios.post(`http://localhost:5000/appointments/available`, newAppointment)
+    .then(res => {
 
-### `npm run build` fails to minify
+        this.setState({
+            slotAvailable: true,
+            message: '',
+            preventSubmit: !(this.state.name && this.state.email)
+        });
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+```
+
+This request is handled by backend at
+[router.js](./backend/router.js)
+
+```$xslt
+appointmentRouter.route('/available').post((req, res) => {
+
+    Appointment.find({scheduledDate: {$gte: schedule.toISOString(), $lt: schedule.add(30, "minute").toISOString()}})
+        .then(appointments => {
+            let day = schedule.day();
+            switch (true) {
+                case (day === 0): //Sunday
+                    res.status(403).json(`No available slot on Sunday (${day})`);
+                    break;
+
+                case (day === 6): //Saturday
+                    if (appointments.length < 4) {
+                        res.json(`OK Day ${day} Current slot: ${appointments.length}`);
+                    } else {
+                        console.error(`No available slot current appointments: ${appointments.length}`);
+                        res.status(403).json(`No available slot (${appointments.length})`);
+                    }
+                    break;
+                default:
+                    if (appointments.length < 2) {
+                        res.json(`OK Day ${day} current slot: ${appointments.length}`);
+                    } else {
+                        console.error(`No available slot current appointments: ${appointments.length}`);
+                        res.status(403).json(`No available slot (${appointments.length})`);
+                    }
+            }
+
+        })
+```

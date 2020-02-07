@@ -1,26 +1,23 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import {BrowserRouter as Router, Route} from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import NavigationMenu from "./components/NavigationMenu";
+import ListAppointment from "./components/ListAppointment";
+import MakeAppointment from "./components/MakeAppointment";
+import ChangeAppointment from "./components/ChangeAppointment";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <Router>
+            <div className="container">
+                <NavigationMenu/>
+                <br/>
+                <Route path="/" exact component={ListAppointment}/>
+                <Route path="/make" exact component={MakeAppointment}/>
+                <Route path="/change/:id" exact component={ChangeAppointment}/>
+            </div>
+        </Router>
+    );
 }
 
 export default App;
