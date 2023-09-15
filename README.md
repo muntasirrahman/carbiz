@@ -17,7 +17,7 @@ The data storage is Mongodb.
 
 To launch the backend app, type:
 
-```$bash
+```shell
 cd backend
 nodemon server
 ```
@@ -41,7 +41,7 @@ The backend provides following API:
 ### Frontend
 
 To launch the frontend application.
-```$bash
+```shell
 npm start
 ```
 
@@ -59,7 +59,7 @@ Frontend
 
 * [MakeAppointment.js](./src/components/MakeAppointment.js)
 * [ChangeAppointment.js](./src/components/ChangeAppointment.js)
-```$xslt
+```jsx
 
 <DatePicker selected={this.state.scheduledDate}
             minTime={setHours(setMinutes(new Date(), 0), 9)}
@@ -73,7 +73,7 @@ Frontend
 
 [router.js](./backend/router.js)
 
-```$xslt
+```javascript
 
     if (minuteDiff < 61 && schedule.hour() === now.hour()) {
         console.log(`Appointment in the same hour is not allowed ${schedule}`);
@@ -91,7 +91,7 @@ This feature is implemented in frontend and backend.
 
 *Frontend*
 
-```$xslt
+```jsx
 
 <DatePicker selected={this.state.scheduledDate}
     //between 9am to 6pm    
@@ -108,7 +108,7 @@ User also can only book from 9am to 6pm
 
 *Backend*
 
-```$xslt
+```javascript
 function isTimingOk(schedule) {
 
     let now = moment();
@@ -130,7 +130,7 @@ function isTimingOk(schedule) {
 ### Bonus: Slot Availability is updated in realtime
 
 The frontend send RESTful request
-```$xslt
+```javascript
 axios.post(`http://localhost:5000/appointments/available`, newAppointment)
     .then(res => {
 
@@ -145,7 +145,7 @@ axios.post(`http://localhost:5000/appointments/available`, newAppointment)
 This request is handled by backend at
 [router.js](./backend/router.js)
 
-```$xslt
+```javascript
 appointmentRouter.route('/available').post((req, res) => {
 
     Appointment.find({scheduledDate: {$gte: schedule.toISOString(), $lt: schedule.add(30, "minute").toISOString()}})
