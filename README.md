@@ -59,8 +59,9 @@ Frontend
 
 * [MakeAppointment.js](./src/components/MakeAppointment.js)
 * [ChangeAppointment.js](./src/components/ChangeAppointment.js)
-```jsx
 
+
+```jsx
 <DatePicker selected={this.state.scheduledDate}
             minTime={setHours(setMinutes(new Date(), 0), 9)}
             maxTime={setHours(setMinutes(new Date(), 30), 17)}
